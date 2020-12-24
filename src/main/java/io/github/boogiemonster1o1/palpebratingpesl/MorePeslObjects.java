@@ -1,17 +1,24 @@
 package io.github.boogiemonster1o1.palpebratingpesl;
 
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
+import com.flowpowered.math.vector.Vector3d;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.PlayerObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.UUIDObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.Vector3dObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatType;
 import org.spongepowered.api.text.chat.ChatTypes;
 import p0nki.pesl.api.PESLContext;
 import p0nki.pesl.api.PESLEvalException;
+import p0nki.pesl.api.builtins.PESLBuiltins;
 import p0nki.pesl.api.object.BuiltinMapLikeObject;
 import p0nki.pesl.api.object.FunctionObject;
 import p0nki.pesl.api.object.NumberObject;
@@ -49,9 +56,22 @@ public class MorePeslObjects {
 	 * {@link Server}
 	 */
 	public static final PESLObject SERVER = BuiltinMapLikeObject.builtinBuilder()
-			.put("onlinePlayerCount", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getOnlinePlayers().size())))
-			.put("maxPlayers", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getMaxPlayers())))
-			.put("playerIdleTimeout", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getPlayerIdleTimeout())))
+			.put("onlinePlayerCount", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getOnlinePlayers().size())))
+			.put("maxPlayers", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getMaxPlayers())))
+			.put("playerIdleTimeout", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getPlayerIdleTimeout())))
+			.put("getPlayer", FunctionObject.of(false, (args) -> {
+				PESLEvalException.validArgumentListLength(args, 1);
+				String arg = args.get(0).castToString();
+				Optional<Player> first = G_S.get().getPlayer(arg);
+				if (first.isPresent()) {
+					return new PlayerObject(first.get());
+				}
+				Optional<Player> next = G_S.get().getPlayer(UUID.fromString(arg));
+				if (next.isPresent()) {
+					return new PlayerObject(next.get());
+				}
+				throw new PESLEvalException("Unknown player/uuid " + arg);
+			}))
 			.put("broadcastChannel", BROADCAST_CHANNEL);
 
 	/**
@@ -67,5 +87,10 @@ public class MorePeslObjects {
 		CONTEXT.let("game", GAME);
 		CONTEXT.let("textOf", FunctionObject.of(false, (args) -> new TextObject(args.get(0).stringify())));
 		CONTEXT.let("server", SERVER);
+
+		((BuiltinMapLikeObject) PESLBuiltins.MATH).put("toVector", FunctionObject.of(false, (args) -> {
+			PESLEvalException.validArgumentListLength(args, 3);
+			return new Vector3dObject(new Vector3d(args.get(0).asNumber().getValue(), args.get(1).asNumber().getValue(), args.get(2).asNumber().getValue()));
+		}));
 	}
 }
