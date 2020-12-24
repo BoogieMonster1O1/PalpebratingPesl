@@ -3,7 +3,7 @@ package io.github.boogiemonster1o1.palpebratingpesl;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import io.github.boogiemonster1o1.palpebratingpesl.objects.TextBuilderObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
@@ -35,10 +35,12 @@ public class MorePeslObjects {
 					chatType = ChatTypes.CHAT;
 				}
 				PESLObject e = args.get(0);
-				if (e instanceof TextBuilderObject) {
-					G_S.get().getBroadcastChannel().send(((TextBuilderObject) e).toText(), chatType);
-				} else {
+				if (e instanceof TextObject) {
+					G_S.get().getBroadcastChannel().send(((TextObject) e).toText(), chatType);
+				} else if (e instanceof StringObject) {
 					G_S.get().getBroadcastChannel().send(Text.of(e.asString().getValue()), chatType);
+				} else {
+					G_S.get().getBroadcastChannel().send(Text.of(e.stringify()), chatType);
 				}
 				return UndefinedObject.INSTANCE;
 			}));
@@ -63,7 +65,7 @@ public class MorePeslObjects {
 
 	static {
 		CONTEXT.let("game", GAME);
-		CONTEXT.let("textOf", FunctionObject.of(false, (args) -> new TextBuilderObject(args.get(0).stringify())));
+		CONTEXT.let("textOf", FunctionObject.of(false, (args) -> new TextObject(args.get(0).stringify())));
 		CONTEXT.let("server", SERVER);
 	}
 }

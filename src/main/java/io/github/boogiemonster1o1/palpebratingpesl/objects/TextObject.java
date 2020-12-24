@@ -15,21 +15,21 @@ import p0nki.pesl.api.object.BuiltinMapLikeObject;
 import p0nki.pesl.api.object.PESLObject;
 
 @SuppressWarnings("NullableProblems")
-public class TextBuilderObject extends BuiltinMapLikeObject implements TextRepresentable {
+public class TextObject extends BuiltinMapLikeObject implements TextRepresentable {
 	private final Text.Builder builder;
 
-	public TextBuilderObject(String text) {
+	public TextObject(String text) {
 		super("text_builder");
 		this.builder = Text.builder(text);
 		this.put("color", FunctionObjects.of(this, (args) -> {
 			String arg = args.get(1).asString().getValue().toUpperCase(Locale.ROOT);
 			TextColor color = Optional.ofNullable(Fields.COLORS.get(arg)).orElseThrow(() -> new PESLEvalException("Unknown color " + arg));
-			TextBuilderObject builder = (TextBuilderObject) args.get(0);
+			TextObject builder = (TextObject) args.get(0);
 			return builder.color(color);
 		}));
 		this.put("append", FunctionObjects.of(this, (args) -> {
-			TextBuilderObject arg = (TextBuilderObject) args.get(1);
-			TextBuilderObject builder = (TextBuilderObject) args.get(0);
+			TextObject arg = (TextObject) args.get(1);
+			TextObject builder = (TextObject) args.get(0);
 			return builder.append(arg.toText());
 		}));
 	}
@@ -46,12 +46,12 @@ public class TextBuilderObject extends BuiltinMapLikeObject implements TextRepre
 		return this.builder.build().toPlainSingle();
 	}
 
-	public TextBuilderObject color(TextColor color) {
+	public TextObject color(TextColor color) {
 		color.applyTo(this.builder);
 		return this;
 	}
 
-	public TextBuilderObject append(Text other) {
+	public TextObject append(Text other) {
 		other.applyTo(this.builder);
 		return this;
 	}
