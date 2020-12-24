@@ -1,1 +1,1 @@
-game.server.broadcastChannel.send(textOf("This is an example PESL script!").color("BLACK"))
+game.server.broadcastChannel.send(textOf("This is an example PESL script!").append(textOf("This text is blue!").color("BLUE")));
