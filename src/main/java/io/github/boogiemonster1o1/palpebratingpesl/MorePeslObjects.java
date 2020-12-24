@@ -7,6 +7,7 @@ import io.github.boogiemonster1o1.palpebratingpesl.objects.TextBuilderObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
+import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageChannel;
 import org.spongepowered.api.text.chat.ChatType;
 import org.spongepowered.api.text.chat.ChatTypes;
@@ -37,6 +38,8 @@ public class MorePeslObjects {
 				PESLObject e = args.get(0);
 				if (e instanceof TextBuilderObject) {
 					G_S.get().getBroadcastChannel().send(((TextBuilderObject) e).toText(), chatType);
+				} else {
+					G_S.get().getBroadcastChannel().send(Text.of(e.asString().getValue()), chatType);
 				}
 				return UndefinedObject.INSTANCE;
 			}));
@@ -61,7 +64,7 @@ public class MorePeslObjects {
 
 	static {
 		CONTEXT.let("game", GAME);
-		CONTEXT.let("textOf", FunctionObject.of(true, (args) -> new TextBuilderObject(args.get(0).asString().getValue())));
+		CONTEXT.let("textOf", FunctionObject.of(true, (args) -> new TextBuilderObject(args.get(0).stringify())));
 		CONTEXT.let("server", SERVER);
 	}
 }
