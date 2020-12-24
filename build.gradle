@@ -1,0 +1,86 @@
+buildscript {
+	dependencies {
+		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+	}
+}
+
+plugins {
+	id 'java'
+	id 'org.spongepowered.plugin' version '0.9.0'
+	id 'net.minecrell.vanillagradle.server' version '2.2-4'
+}
+
+group = 'io.github.boogiemonster1o1'
+version = '1.0.0+SNAPSHOT'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+sourceSets {
+	api
+}
+
+compileJava {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+minecraft {
+	version = '1.12.2'
+	mappings = 'snapshot_20180808'
+}
+
+logger.lifecycle("Building ${rootProject.name} version ${project.version}")
+
+repositories {
+	mavenCentral()
+	jcenter()
+	maven {
+		name = 'Sponge Maven'
+		url = 'https://repo.spongepowered.org/maven'
+	}
+	maven {
+		name = 'Jitpack'
+		url = "https://jitpack.io"
+	}
+}
+
+configurations {
+	shadow
+	compile.extendsFrom shadow
+}
+
+dependencies {
+	shadow 'com.github.jearmstrong21:PESL:36498a1'
+	implementation 'org.spongepowered:spongeapi:7.3.0'
+	implementation 'org.spongepowered:spongevanilla:1.12.2-7.3.0'
+	annotationProcessor 'org.spongepowered:spongeapi:7.3.0'
+}
+
+jar {
+	from "LICENSE"
+
+	configurations.shadow.each {
+		from(project.zipTree(it)){
+			exclude 'META-INF', 'META-INF/**'
+		}
+	}
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = "sources"
+	from sourceSets.main.allSource
+}
+
+tasks.build.finalizedBy(sourcesJar)
+
+sponge {
+	plugin {
+		id = 'palpebratingpesl'
+		meta {
+			name = rootProject.name
+			version = project.version
+			description = 'This is an example plugin'
+		}
+	}
+}

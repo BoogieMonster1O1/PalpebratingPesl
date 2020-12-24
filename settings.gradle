@@ -1,0 +1,13 @@
+pluginManagement {
+	repositories {
+		jcenter()
+		maven {
+			name = 'forge'
+			url = 'https://files.minecraftforge.net/maven'
+		}
+		gradlePluginPortal()
+	}
+}
+
+
+rootProject.name = 'PalpebratingPesl'
