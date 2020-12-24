@@ -16,9 +16,7 @@ public class PlayerObject extends BuiltinMapLikeObject  {
 		this.player = player;
 		this.put("kick", FunctionObjects.of(this, (args) -> {
 			PESLEvalException.validArgumentListLength(args, 0, 1);
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			if (args.size() == 0) {
 				this.player.kick();
 				this.player = null;
@@ -28,86 +26,62 @@ public class PlayerObject extends BuiltinMapLikeObject  {
 			return UndefinedObject.INSTANCE;
 		}));
 		this.put("hasPlayedBefore", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.hasPlayedBefore());
 		}));
 		this.put("isChatColorsEnabled", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.isChatColorsEnabled());
 		}));
 		this.put("isViewingInventory", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.isViewingInventory());
 		}));
 		this.put("isOnGround", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.isOnGround());
 		}));
 		this.put("getName", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new StringObject(this.player.getName());
 		}));
 		this.put("getPosition", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new Vector3dObject(this.player.getPosition());
 		}));
 		this.put("getVelocity", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new Vector3dObject(this.player.getVelocity());
 		}));
 		this.put("getRotation", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new Vector3dObject(this.player.getRotation());
 		}));
 		this.put("getScale", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new Vector3dObject(this.player.getScale());
 		}));
 		this.put("getHeadRotation", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new Vector3dObject(this.player.getHeadRotation());
 		}));
 		this.put("closeInventory", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.closeInventory());
 		}));
 		this.put("closeInventory", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new BooleanObject(this.player.closeInventory());
 		}));
 		this.put("getUniqueId", FunctionObjects.of(this, (args) -> {
-			if (this.player == null) {
-				throw new PESLEvalException("A Player is not online!");
-			}
+			this.validatePlayer();
 			return new UUIDObject(this.player.getUniqueId());
 		}));
 	}
 
-	public Player getPlayer() {
-		return this.player;
+	public void validatePlayer() throws PESLEvalException {
+		if (this.player == null) {
+			throw new PESLEvalException("The Player is not online! Do not use references to kicked players");
+		}
 	}
 }
