@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.asset.AssetId;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
@@ -39,18 +41,11 @@ public class PalpebratingPesl {
 
 	private static PalpebratingPesl instance;
 
-	@ConfigDir(sharedRoot = false)
-	@Inject
-	private Path configDir;
-
-	@Inject
-	private Logger logger;
-
-	@Inject
-	private Game game;
-
-	@Inject
-	private PluginContainer pluginContainer;
+	@Inject @ConfigDir(sharedRoot = false) private Path configDir;
+	@Inject private Logger logger;
+	@Inject private Game game;
+	@Inject private PluginContainer pluginContainer;
+	@Inject @AssetId("scripts/example.pesl") private Asset examplePeslAsset;
 
 	private final List<String> suggestions = new ArrayList<>();
 
@@ -62,6 +57,11 @@ public class PalpebratingPesl {
 	@Listener
 	public void onPreInitialization(GamePreInitializationEvent event) {
 		this.loadScriptArgs();
+		try {
+			this.examplePeslAsset.copyToDirectory(this.configDir.resolve("scripts"), true);
+		} catch (IOException e) {
+			this.logger.error("Error copying example script", e);
+		}
 	}
 
 	@Listener

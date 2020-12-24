@@ -25,7 +25,7 @@ public class MorePeslObjects {
 	/**
 	 * {@link MessageChannel}
 	 */
-	public static final PESLObject MESSAGE_CHANNEL = BuiltinMapLikeObject.builtinBuilder()
+	public static final PESLObject BROADCAST_CHANNEL = BuiltinMapLikeObject.builtinBuilder()
 			.put("send", FunctionObject.of(true, (args) -> {
 				ChatType chatType;
 				if (args.size() > 1) {
@@ -48,7 +48,7 @@ public class MorePeslObjects {
 			.put("onlinePlayerCount", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getOnlinePlayers().size())))
 			.put("maxPlayers", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getMaxPlayers())))
 			.put("playerIdleTimeout", FunctionObject.of(true, (args) -> new NumberObject(G_S.get().getPlayerIdleTimeout())))
-			.put("messageChannel", MESSAGE_CHANNEL);
+			.put("broadcastChannel", BROADCAST_CHANNEL);
 
 	/**
 	 * {@link Game}
