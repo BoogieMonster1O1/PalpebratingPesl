@@ -3,7 +3,6 @@ package io.github.boogiemonster1o1.palpebratingpesl;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import com.google.common.collect.ImmutableMap;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextBuilderObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
@@ -58,11 +57,11 @@ public class MorePeslObjects {
 			.put("gameDirectory", FunctionObject.of(true, (args) -> new StringObject(PalpebratingPesl.getInstance().getGame().getGameDirectory().toAbsolutePath().toString())))
 			.put("server", SERVER);
 
-	public static final PESLContext CONTEXT = new PESLContext(
-			ImmutableMap.<String, PESLObject>builder()
-					.put("game", GAME)
-					.put("textOf", FunctionObject.of(true, (args) -> new TextBuilderObject(args.get(0).asString().getValue())))
-					.put("server", SERVER)
-					.build()
-	);
+	public static final PESLContext CONTEXT = new PESLContext();
+
+	static {
+		CONTEXT.let("game", GAME);
+		CONTEXT.let("textOf", FunctionObject.of(true, (args) -> new TextBuilderObject(args.get(0).asString().getValue())));
+		CONTEXT.let("server", SERVER);
+	}
 }

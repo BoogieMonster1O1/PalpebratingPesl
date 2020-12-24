@@ -1,33 +1,21 @@
-buildscript {
-	dependencies {
-		classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
-	}
-}
-
 plugins {
 	id 'java'
 	id 'org.spongepowered.plugin' version '0.9.0'
-	id 'net.minecrell.vanillagradle.server' version '2.2-4'
+	id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 group = 'io.github.boogiemonster1o1'
-version = '1.0.0+SNAPSHOT'
+version = '0.1.0'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-sourceSets {
-	api
-}
-
 compileJava {
 	sourceCompatibility = JavaVersion.VERSION_1_8
 	targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-minecraft {
-	version = '1.12.2'
-	mappings = 'snapshot_20180808'
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = 8
+	}
 }
 
 logger.lifecycle("Building ${rootProject.name} version ${project.version}")
@@ -45,26 +33,10 @@ repositories {
 	}
 }
 
-configurations {
-	shadow
-	compile.extendsFrom shadow
-}
-
 dependencies {
-	shadow 'com.github.jearmstrong21:PESL:36498a1'
-	implementation 'org.spongepowered:spongeapi:7.3.0'
-	implementation 'org.spongepowered:spongevanilla:1.12.2-7.3.0'
+	compile 'com.github.jearmstrong21:PESL:36498a1'
+	compile 'org.spongepowered:spongeapi:7.3.0'
 	annotationProcessor 'org.spongepowered:spongeapi:7.3.0'
-}
-
-jar {
-	from "LICENSE"
-
-	configurations.shadow.each {
-		from(project.zipTree(it)){
-			exclude 'META-INF', 'META-INF/**'
-		}
-	}
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -72,7 +44,31 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 	from sourceSets.main.allSource
 }
 
-tasks.build.finalizedBy(sourcesJar)
+shadowJar {
+	exclude 'module-info.class'
+	dependencies {
+		include(dependency('com.github.jearmstrong21:PESL:36498a1'))
+	}
+	relocate 'p0nki.pesl', 'io.github.boogiemonster1o1.palpebratingpesl.shaded.p0nki.pesl'
+}
+
+task copyPlugin(type: Copy) {
+	from "build/libs/${archivesBaseName}-${version}-all.jar"
+	into "run/mods"
+}
+
+task cleanModsDir {
+	doLast {
+		def mods = file('run/mods')
+		if (mods.exists()) {
+			mods.deleteDir()
+		}
+		mods.mkdir()
+	}
+}
+
+tasks.build.finalizedBy(sourcesJar, copyPlugin)
+tasks.clean.dependsOn(cleanModsDir)
 
 sponge {
 	plugin {
@@ -80,7 +76,7 @@ sponge {
 		meta {
 			name = rootProject.name
 			version = project.version
-			description = 'This is an example plugin'
+			description = 'PESL Scripting'
 		}
 	}
 }

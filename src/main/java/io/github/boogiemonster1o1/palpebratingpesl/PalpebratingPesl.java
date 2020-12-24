@@ -100,9 +100,10 @@ public class PalpebratingPesl {
 		Path scriptsDir = this.configDir.resolve("scripts");
 		if (!Files.exists(scriptsDir)) {
 			try {
-				Files.createDirectory(scriptsDir);
+				Files.createDirectories(scriptsDir);
 			} catch (IOException e) {
 				this.logger.error("Error creating scripts directory", e);
+				return;
 			}
 		}
 
