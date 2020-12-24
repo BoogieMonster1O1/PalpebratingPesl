@@ -27,7 +27,7 @@ public class MorePeslObjects {
 	 * {@link MessageChannel}
 	 */
 	public static final PESLObject BROADCAST_CHANNEL = BuiltinMapLikeObject.builtinBuilder()
-			.put("send", FunctionObject.of(true, (args) -> {
+			.put("send", FunctionObject.of(false, (args) -> {
 				ChatType chatType;
 				if (args.size() > 1) {
 					StringObject next = args.get(1).asString();
@@ -57,14 +57,14 @@ public class MorePeslObjects {
 	 * {@link Game}
 	 */
 	public static final PESLObject GAME = BuiltinMapLikeObject.builtinBuilder()
-			.put("gameDirectory", FunctionObject.of(true, (args) -> new StringObject(PalpebratingPesl.getInstance().getGame().getGameDirectory().toAbsolutePath().toString())))
+			.put("gameDirectory", FunctionObject.of(false, (args) -> new StringObject(PalpebratingPesl.getInstance().getGame().getGameDirectory().toAbsolutePath().toString())))
 			.put("server", SERVER);
 
 	public static final PESLContext CONTEXT = new PESLContext();
 
 	static {
 		CONTEXT.let("game", GAME);
-		CONTEXT.let("textOf", FunctionObject.of(true, (args) -> new TextBuilderObject(args.get(0).stringify())));
+		CONTEXT.let("textOf", FunctionObject.of(false, (args) -> new TextBuilderObject(args.get(0).stringify())));
 		CONTEXT.let("server", SERVER);
 	}
 }
