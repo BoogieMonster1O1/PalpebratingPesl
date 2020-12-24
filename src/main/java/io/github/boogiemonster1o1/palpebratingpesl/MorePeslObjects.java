@@ -8,7 +8,6 @@ import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.channel.MessageChannel;
 import org.spongepowered.api.text.chat.ChatType;
 import org.spongepowered.api.text.chat.ChatTypes;
 import p0nki.pesl.api.PESLContext;
@@ -24,7 +23,7 @@ public class MorePeslObjects {
 	private static final Supplier<Server> G_S = () -> PalpebratingPesl.getInstance().getServer();
 
 	/**
-	 * {@link MessageChannel}
+	 * {@link Server#getBroadcastChannel()}
 	 */
 	public static final PESLObject BROADCAST_CHANNEL = BuiltinMapLikeObject.builtinBuilder()
 			.put("send", FunctionObject.of(false, (args) -> {

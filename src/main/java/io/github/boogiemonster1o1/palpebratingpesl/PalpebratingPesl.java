@@ -88,7 +88,7 @@ public class PalpebratingPesl {
 							}
 
 							long end = System.nanoTime() - start;
-							src.sendMessage(Text.builder("Finished executing script " + name + " in " + (end / 1000D) + " ms").onHover(TextActions.showText(Text.of(filePath.toAbsolutePath().toString()))).toText());
+							src.sendMessage(Text.builder("Finished executing script " + name + " in " + (end / 1_000_000D) + " ms").onHover(TextActions.showText(Text.of(filePath.toAbsolutePath().toString()))).toText());
 							return CommandResult.success();
 						})
 						.build(),
@@ -122,7 +122,7 @@ public class PalpebratingPesl {
 		long start = System.nanoTime();
 		this.loadScriptArgs();
 		long end = System.nanoTime() - start;
-		this.logger.info("Finished reloading scripts in " + (end / 1000D) + " ms");
+		this.logger.info("Finished reloading scripts in " + (end / 1_000_000D) + " ms");
 	}
 
 	public Path getConfigDir() {
