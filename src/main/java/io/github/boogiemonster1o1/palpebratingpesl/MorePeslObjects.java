@@ -3,11 +3,11 @@ package io.github.boogiemonster1o1.palpebratingpesl;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.flowpowered.math.vector.Vector3d;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.PlayerObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject;
-import io.github.boogiemonster1o1.palpebratingpesl.objects.UUIDObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.Vector3dObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.spongepowered.api.Game;
@@ -19,6 +19,7 @@ import org.spongepowered.api.text.chat.ChatTypes;
 import p0nki.pesl.api.PESLContext;
 import p0nki.pesl.api.PESLEvalException;
 import p0nki.pesl.api.builtins.PESLBuiltins;
+import p0nki.pesl.api.object.ArrayObject;
 import p0nki.pesl.api.object.BuiltinMapLikeObject;
 import p0nki.pesl.api.object.FunctionObject;
 import p0nki.pesl.api.object.NumberObject;
@@ -36,18 +37,16 @@ public class MorePeslObjects {
 			.put("send", FunctionObject.of(false, (args) -> {
 				ChatType chatType;
 				if (args.size() > 1) {
-					StringObject next = args.get(1).asString();
-					chatType = Optional.ofNullable(Fields.CHAT_TYPES.get(next.getValue())).orElseThrow(() -> new PESLEvalException("Unknown chat type: " + next.getValue()));
+					String next = args.get(1).castToString();
+					chatType = Optional.ofNullable(Fields.CHAT_TYPES.get(next)).orElseThrow(() -> new PESLEvalException("Unknown chat type: " + next));
 				} else {
 					chatType = ChatTypes.CHAT;
 				}
 				PESLObject e = args.get(0);
 				if (e instanceof TextObject) {
 					G_S.get().getBroadcastChannel().send(((TextObject) e).toText(), chatType);
-				} else if (e instanceof StringObject) {
-					G_S.get().getBroadcastChannel().send(Text.of(e.asString().getValue()), chatType);
 				} else {
-					G_S.get().getBroadcastChannel().send(Text.of(e.stringify()), chatType);
+					G_S.get().getBroadcastChannel().send(Text.of(e.castToString()), chatType);
 				}
 				return UndefinedObject.INSTANCE;
 			}));
@@ -56,9 +55,9 @@ public class MorePeslObjects {
 	 * {@link Server}
 	 */
 	public static final PESLObject SERVER = BuiltinMapLikeObject.builtinBuilder()
-			.put("onlinePlayerCount", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getOnlinePlayers().size())))
-			.put("maxPlayers", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getMaxPlayers())))
-			.put("playerIdleTimeout", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getPlayerIdleTimeout())))
+			.put("getOnlinePlayerCount", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getOnlinePlayers().size())))
+			.put("getMaxPlayers", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getMaxPlayers())))
+			.put("getPlayerIdleTimeout", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getPlayerIdleTimeout())))
 			.put("getPlayer", FunctionObject.of(false, (args) -> {
 				PESLEvalException.validArgumentListLength(args, 1);
 				String arg = args.get(0).castToString();
@@ -72,6 +71,10 @@ public class MorePeslObjects {
 				}
 				throw new PESLEvalException("Unknown player/uuid " + arg);
 			}))
+			.put("getOnlinePlayers", FunctionObject.of(false, (args) -> new ArrayObject(G_S.get().getOnlinePlayers().stream().map(PlayerObject::new).collect(Collectors.toList()))))
+			.put("getPlayerIdleTimeout", FunctionObject.of(false, (args) -> new TextObject(G_S.get().getMotd())))
+			.put("getTicksPerSecond", FunctionObject.of(false, (args) -> new NumberObject(G_S.get().getTicksPerSecond())))
+
 			.put("broadcastChannel", BROADCAST_CHANNEL);
 
 	/**

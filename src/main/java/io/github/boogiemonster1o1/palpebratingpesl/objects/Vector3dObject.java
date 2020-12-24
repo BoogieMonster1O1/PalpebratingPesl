@@ -1,9 +1,12 @@
 package io.github.boogiemonster1o1.palpebratingpesl.objects;
 
+import javax.annotation.Nonnull;
+
 import com.flowpowered.math.vector.Vector3d;
 import io.github.boogiemonster1o1.palpebratingpesl.util.FunctionObjects;
 import p0nki.pesl.api.object.BuiltinMapLikeObject;
 import p0nki.pesl.api.object.NumberObject;
+import p0nki.pesl.api.object.PESLObject;
 
 public class Vector3dObject extends BuiltinMapLikeObject {
 	private final Vector3d vector3d;
@@ -19,7 +22,17 @@ public class Vector3dObject extends BuiltinMapLikeObject {
 		this.put("getFloorZ", FunctionObjects.of(this, (args) -> new NumberObject(this.vector3d.getZ())));
 	}
 
-	public Vector3d getVector3d() {
-		return this.vector3d;
+	@Nonnull
+	@Override
+	public String castToString() {
+		return this.vector3d.toString();
+	}
+
+	@Override
+	public boolean compareEquals(@Nonnull PESLObject o) {
+		if (this == o) return true;
+		if (!(o instanceof Vector3dObject)) return false;
+		Vector3dObject that = (Vector3dObject) o;
+		return this.vector3d == that.vector3d;
 	}
 }

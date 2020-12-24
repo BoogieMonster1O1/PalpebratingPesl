@@ -1,6 +1,7 @@
 package io.github.boogiemonster1o1.palpebratingpesl.objects;
 
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nonnull;
@@ -21,6 +22,16 @@ public class TextObject extends BuiltinMapLikeObject implements TextRepresentabl
 	public TextObject(String text) {
 		super("text_builder");
 		this.builder = Text.builder(text);
+		this.putStuff();
+	}
+
+	public TextObject(Text text) {
+		super("text_builder");
+		this.builder = text.toBuilder();
+		this.putStuff();
+	}
+
+	private void putStuff() {
 		this.put("color", FunctionObjects.of(this, (args) -> {
 			String arg = args.get(1).asString().getValue().toUpperCase(Locale.ROOT);
 			TextColor color = Optional.ofNullable(Fields.COLORS.get(arg)).orElseThrow(() -> new PESLEvalException("Unknown color " + arg));
@@ -57,8 +68,11 @@ public class TextObject extends BuiltinMapLikeObject implements TextRepresentabl
 	}
 
 	@Override
-	public boolean compareEquals(@Nonnull PESLObject object) {
-		return false;
+	public boolean compareEquals(@Nonnull PESLObject o) {
+		if (this == o) return true;
+		if (!(o instanceof TextObject)) return false;
+		TextObject that = (TextObject) o;
+		return this.toText().equals(that.toText());
 	}
 
 	@Override

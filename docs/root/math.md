@@ -42,3 +42,6 @@ TODO
 
 ### `noise(number,number)`
 TODO
+
+### `toVector(number,number,number)`
+Converts the three number into a vector (x, y, z)
