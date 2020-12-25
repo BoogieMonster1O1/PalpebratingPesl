@@ -14,6 +14,7 @@ public class Fields {
 	public static final Map<String, ChatType> CHAT_TYPES = ImmutableMap.<String, ChatType>builder()
 			.put("CHAT", ChatTypes.CHAT)
 			.put("ACTION_BAR", ChatTypes.ACTION_BAR)
+			.put("ACTIONBAR", ChatTypes.ACTION_BAR)
 			.put("SYSTEM", ChatTypes.SYSTEM)
 			.build();
 	public static final Map<String, TextColor> COLORS;
@@ -33,6 +34,6 @@ public class Fields {
 	}
 
 	public static void init() {
-//		 intentionally left blank to trigger static initializer
+	// intentionally left blank to trigger static initializer
 	}
 }
