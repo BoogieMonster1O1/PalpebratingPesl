@@ -33,6 +33,6 @@ public class Fields {
 	}
 
 	public static void init() {
-		// intentionally left blank to trigger static initializer
+//		 intentionally left blank to trigger static initializer
 	}
 }

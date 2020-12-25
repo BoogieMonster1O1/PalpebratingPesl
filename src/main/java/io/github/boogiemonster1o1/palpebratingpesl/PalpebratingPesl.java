@@ -5,9 +5,17 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.inject.Inject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.GetUtilsKt;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.ServerObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
@@ -21,6 +29,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.GameReloadEvent;
+import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -28,7 +37,13 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
+import p0nki.pesl.api.PESLContext;
 import p0nki.pesl.api.PESLEvalException;
+import p0nki.pesl.api.object.ArrayObject;
+import p0nki.pesl.api.object.BuiltinMapLikeObject;
+import p0nki.pesl.api.object.FunctionObject;
+import p0nki.pesl.api.object.PESLObject;
+import p0nki.pesl.api.object.StringObject;
 import p0nki.pesl.api.parse.PESLParseException;
 import p0nki.pesl.api.parse.PESLParser;
 import p0nki.pesl.api.token.PESLTokenizeException;
@@ -36,8 +51,20 @@ import p0nki.pesl.api.token.PESLTokenizer;
 
 @Plugin(id = "palpebratingpesl")
 public class PalpebratingPesl {
+	private static final PESLObject SPONGE_OBJECT = BuiltinMapLikeObject.builtinBuilder()
+			.put("getGame", FunctionObject.of(false, args -> GameObject.INSTANCE))
+			.put("getServer", FunctionObject.of(false, args -> ServerObject.INSTANCE))
+			.put("getPluginManager", FunctionObject.of(false, args -> PluginManagerObject.INSTANCE))
+			.put("getPlatform", FunctionObject.of(false, args -> PlatformObject.INSTANCE));
 	public static final PESLTokenizer TOKENIZER = new PESLTokenizer();
 	public static final PESLParser PARSER = new PESLParser();
+	public static final PESLContext CONTEXT;
+
+	static {
+		PESLContext e = new PESLContext();
+		e.let("Sponge", SPONGE_OBJECT);
+		CONTEXT = e;
+	}
 
 	private static PalpebratingPesl instance;
 
@@ -47,8 +74,6 @@ public class PalpebratingPesl {
 	@Inject private PluginContainer pluginContainer;
 	@Inject @AssetId("scripts/example.pesl") private Asset examplePeslAsset;
 
-	private final List<String> suggestions = new ArrayList<>();
-
 	@Listener
 	public void onConstruction(GameConstructionEvent event) {
 		instance = this;
@@ -56,7 +81,6 @@ public class PalpebratingPesl {
 
 	@Listener
 	public void onPreInitialization(GamePreInitializationEvent event) {
-		this.loadScriptArgs();
 		try {
 			this.examplePeslAsset.copyToDirectory(this.configDir.resolve("scripts"), true);
 		} catch (IOException e) {
@@ -65,18 +89,26 @@ public class PalpebratingPesl {
 	}
 
 	@Listener
+	public void onAboutToStartServer(GameAboutToStartServerEvent event) {
+		Fields.init();
+		ServerObject.init();
+	}
+
+	@Listener
 	public void onInitialization(GameInitializationEvent event) {
 		Sponge.getCommandManager().register(this.pluginContainer,
 				CommandSpec.builder()
 						.permission("palpebratingpesl.evalpesl")
-						.arguments(GenericArguments.choices(Text.of("name"), () -> this.suggestions, str -> str))
+						.arguments(GenericArguments.string(Text.of("name")), GenericArguments.remainingJoinedStrings(Text.of("remaining")))
 						.executor((src, args) -> {
 							String name = args.<String>getOne("name").orElseThrow(AssertionError::new);
 							long start = System.nanoTime();
 							Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
 
 							try {
-								PARSER.parseExpression(TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)))).evaluate(MorePeslObjects.CONTEXT);
+								PESLContext argContext = CONTEXT.push();
+								argContext.let("Args", new ArrayObject(Arrays.stream(args.<String>getOne("remaining").orElse("").split(" ")).map(StringObject::new).collect(Collectors.toList())));
+								PARSER.parseExpression(TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)))).evaluate(CONTEXT);
 							} catch (PESLParseException e) {
 								throw new RuntimeException(e.getMessage(), e);
 							} catch (PESLEvalException e) {
@@ -93,37 +125,11 @@ public class PalpebratingPesl {
 						})
 						.build(),
 				"evalpesl");
-		Fields.init();
 	}
 
-	private void loadScriptArgs() {
-		Path scriptsDir = this.configDir.resolve("scripts");
-		if (!Files.exists(scriptsDir)) {
-			try {
-				Files.createDirectories(scriptsDir);
-			} catch (IOException e) {
-				this.logger.error("Error creating scripts directory", e);
-				return;
-			}
-		}
-
-		try {
-			Files.list(scriptsDir)
-					.filter(Files::isRegularFile)
-					.filter(path -> path.endsWith(".pesl"))
-					.forEach(path -> this.suggestions.add(path.getFileName().toString()));
-		} catch (IOException e) {
-			this.logger.error("Error walking through scripts directory", e);
-		}
-	}
-
-	@Listener
-	public void onReload(GameReloadEvent event) {
-		long start = System.nanoTime();
-		this.loadScriptArgs();
-		long end = System.nanoTime() - start;
-		this.logger.info("Finished reloading scripts in " + (end / 1_000_000D) + " ms");
-	}
+//	@Listener
+//	public void onReload(GameReloadEvent event) {
+//	}
 
 	public Path getConfigDir() {
 		return this.configDir;
