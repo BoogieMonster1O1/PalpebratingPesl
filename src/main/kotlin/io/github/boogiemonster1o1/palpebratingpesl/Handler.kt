@@ -43,7 +43,7 @@ object Handler {
 		.put("getServer", FunctionObject.of(false) { ServerObject })
 		.put("getPluginManager", FunctionObject.of(false) { PluginManagerObject })
 		.put("getPlatform", FunctionObject.of(false) { PlatformObject })
-	
+
 	@Listener
 	fun onPreInitialization(event: GamePreInitializationEvent?) {
 		val logger = PalpebratingPesl.logger
@@ -57,10 +57,7 @@ object Handler {
 			if (!Files.exists(configPath)) {
 				Files.createFile(configPath)
 			}
-			PalpebratingPesl.config = gson.fromJson(
-				Files.newBufferedReader(configPath),
-				Config::class.java
-			)
+			PalpebratingPesl.config = gson.fromJson(Files.newBufferedReader(configPath), Config::class.java)
 		} catch (e: IOException) {
 			logger.error("Error reading file", e)
 		} catch (e: JsonSyntaxException) {
@@ -76,22 +73,22 @@ object Handler {
 
 	@Listener
 	fun onStartingServer(event: GameStartingServerEvent?) {
-		for (name in PalpebratingPesl.config.initScripts) {
-			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
+		PalpebratingPesl.config.initScripts.forEach {
+			execute(PalpebratingPesl.game.server.console, it, Collections.emptyList())
 		}
 	}
 
 	@Listener
 	fun onStartedServer(event: GameStartedServerEvent?) {
-		for (name in PalpebratingPesl.config.serverStartedScripts) {
-			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
+		PalpebratingPesl.config.serverStartedScripts.forEach {
+			execute(PalpebratingPesl.game.server.console, it, Collections.emptyList())
 		}
 	}
 
 	@Listener
 	fun onReload(event: GameReloadEvent?) {
-		for (name in PalpebratingPesl.config.reloadScripts) {
-			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
+		PalpebratingPesl.config.reloadScripts.forEach {
+			execute(PalpebratingPesl.game.server.console, it, Collections.emptyList())
 		}
 	}
 
@@ -112,7 +109,7 @@ object Handler {
 		"evalpesl")
 	}
 
-	private fun execute(src: CommandSource?, name: String, remaining: List<String>) {
+	private fun execute(src: CommandSource, name: String, remaining: List<String>) {
 		val logger = PalpebratingPesl.logger
 		val filePath: Path = PalpebratingPesl.configDir.resolve("scripts").resolve("$name.pesl")
 		val tokens: PESLTokenList = try {
@@ -146,9 +143,7 @@ object Handler {
 			PESLEvalException.validArgumentListLength(it, 1)
 			TextObject(it[0].castToString())
 		})
-		if (src != null) {
-			ctx.let("Source", CommandSourceObject(src))
-		}
+		ctx.let("Source", CommandSourceObject(src))
 		ctx.let("println", PESLBuiltins.PRINTLN)
 		ctx.let("args", ArrayObject(remaining.stream().map {
 			StringObject(it) as PESLObject
