@@ -4,10 +4,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import io.github.boogiemonster1o1.palpebratingpesl.objects.CommandSourceObject
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.ServerObject
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.*
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.command.CommandResult
@@ -143,6 +140,7 @@ object Handler {
 			PESLEvalException.validArgumentListLength(it, 1)
 			TextObject(it[0].castToString())
 		})
+		ctx.let("Logger", LoggerObject)
 		ctx.let("Source", CommandSourceObject(src))
 		ctx.let("println", PESLBuiltins.PRINTLN)
 		ctx.let("validateArgs", FunctionObject.of(false) {
