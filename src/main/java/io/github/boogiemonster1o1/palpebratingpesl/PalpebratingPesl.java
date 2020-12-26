@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject;
@@ -37,16 +38,19 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.action.TextActions;
 import p0nki.pesl.api.PESLContext;
 import p0nki.pesl.api.PESLEvalException;
+import p0nki.pesl.api.builtins.PESLBuiltins;
 import p0nki.pesl.api.object.ArrayObject;
 import p0nki.pesl.api.object.BuiltinMapLikeObject;
 import p0nki.pesl.api.object.FunctionObject;
 import p0nki.pesl.api.object.PESLObject;
 import p0nki.pesl.api.object.StringObject;
+import p0nki.pesl.api.parse.ASTNode;
 import p0nki.pesl.api.parse.PESLParseException;
 import p0nki.pesl.api.parse.PESLParser;
+import p0nki.pesl.api.parse.PESLValidateException;
+import p0nki.pesl.api.token.PESLTokenList;
 import p0nki.pesl.api.token.PESLTokenizeException;
 import p0nki.pesl.api.token.PESLTokenizer;
 
@@ -60,14 +64,7 @@ public class PalpebratingPesl {
 	public static final Gson GSON = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().setLenient().create();
 	public static final PESLTokenizer TOKENIZER = new PESLTokenizer();
 	public static final PESLParser PARSER = new PESLParser();
-	public static final PESLContext CONTEXT;
 	private Config config = null;
-
-	static {
-		PESLContext e = new PESLContext();
-		e.let("Sponge", SPONGE_OBJECT);
-		CONTEXT = e;
-	}
 
 	private static PalpebratingPesl instance;
 
@@ -114,7 +111,7 @@ public class PalpebratingPesl {
 	@Listener
 	public void onStartingServer(GameStartingServerEvent event) {
 		for (String name : this.config.getInitScripts()) {
-			Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
+			this.execute(name);
 		}
 	}
 
@@ -123,7 +120,7 @@ public class PalpebratingPesl {
 		Sponge.getCommandManager().register(this.pluginContainer,
 				CommandSpec.builder()
 						.permission("palpebratingpesl.evalpesl")
-						.arguments(GenericArguments.string(Text.of("name")), GenericArguments.remainingJoinedStrings(Text.of("remaining")))
+						.arguments(GenericArguments.string(Text.of("name")), GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("remaining"))))
 						.executor((src, args) -> {
 							long start = System.nanoTime();
 							this.execute(args.<String>getOne("name").orElseThrow(AssertionError::new), args.<String>getOne("remaining").orElse("").split(" "));
@@ -135,21 +132,66 @@ public class PalpebratingPesl {
 				"evalpesl");
 	}
 
-	private void execute(String name, String... args) throws RuntimeException {
+	private void execute(String name, String... remaining) throws RuntimeException {
 		Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
-
+		PESLTokenList tokens;
 		try {
-			PESLContext argContext = CONTEXT.push();
-			argContext.let("args", new ArrayObject(Arrays.stream(args).map(StringObject::new).collect(Collectors.toList())));
-			PARSER.parseExpression(TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)))).evaluate(CONTEXT);
-		} catch (PESLParseException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		} catch (PESLEvalException e) {
-			throw new RuntimeException("Encountered an unknown exception: " + e.getMessage(), e);
+			tokens = TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)));
 		} catch (PESLTokenizeException e) {
-			throw new RuntimeException("Invalid PESL code at index " + e.getIndex(), e);
+			int index = e.getIndex();
+			StringBuilder builder = new StringBuilder();
+			builder.append("   ");
+			for (int i = 0; i < index; i++) {
+				builder.append(" ");
+			}
+			builder.append("^");
+			this.logger.error(builder.toString());
+			this.logger.error("Tokenize error\n" + e.getMessage());
+			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
+		}
+
+		PESLContext ctx = new PESLContext();
+		ctx.let("Sponge", SPONGE_OBJECT);
+		ctx.let("textOf", FunctionObject.of(false, args -> {
+			PESLEvalException.validArgumentListLength(args, 1);
+			return new TextObject(args.get(0).castToString());
+		}));
+		ctx.let("println", PESLBuiltins.PRINTLN);
+		ctx.let("args", new ArrayObject(Arrays.stream(remaining).map(StringObject::new).collect(Collectors.toList())));
+
+		PESLParser astCreator = new PESLParser();
+
+		try {
+			PESLObject lastObject;
+			while (tokens.hasAny()) {
+				ASTNode node = astCreator.parseExpression(tokens);
+				node.validate();
+				lastObject = node.evaluate(ctx);
+				this.logger.debug("Evaluated PESL Object expression -> " + lastObject.castToString());
+			}
+		} catch (PESLParseException e) {
+			StringBuilder builder = new StringBuilder();
+			builder.append("  ");
+			for (int i = 0; i < e.getToken().getStart(); i++) {
+				builder.append(" ");
+			}
+			for (int i = 0; i < e.getToken().getEnd() - e.getToken().getStart(); i++) {
+				builder.append("^");
+			}
+			builder.append("\n");
+			builder.append(" ").append(e.getToken().toString()).append("\n");
+			builder.append("Parse error\n").append(e.getMessage()).append("\n");
+			this.logger.error(builder.toString());
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (PESLEvalException e) {
+			this.logger.error("Eval error");
+			throw new RuntimeException("Encountered an unknown exception: " + e.getMessage(), e);
+		} catch (PESLValidateException e) {
+			this.logger.error("Validate error " + e.getMessage());
+			this.logger.error(String.valueOf(e.getNode()));
+			throw new RuntimeException(e);
 		}
 	}
 

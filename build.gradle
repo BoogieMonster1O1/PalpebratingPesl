@@ -49,8 +49,10 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 shadowJar {
 	exclude 'module-info.class'
+	exclude '**/module-info.class'
 	dependencies {
 		include(dependency('com.github.jearmstrong21:PESL:36498a1'))
+		include(dependency('org.jetbrains.kotlin:kotlin-stdlib'))
 		include(dependency('org.jetbrains.kotlin:kotlin-stdlib-jdk8'))
 		exclude(dependency('org.spongepowered:spongeapi:.*'))
 	}

@@ -1,1 +1,1 @@
-game.server.broadcastChannel.send(textOf("This is an example PESL script!").color("BLUE"))
+Sponge.getServer().getBroadcastChannel().send(textOf("This is an example PESL script!").color("BLUE"))
