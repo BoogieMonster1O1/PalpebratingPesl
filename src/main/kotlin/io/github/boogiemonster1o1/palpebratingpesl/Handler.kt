@@ -138,19 +138,20 @@ object Handler {
 		}
 		val ctx = PESLContext()
 		ctx.let("Sponge", spongeObject)
-		ctx.let("textOf", FunctionObject.of(false) {
-			PESLEvalException.validArgumentListLength(it, 1)
-			TextObject(it[0].castToString())
-		})
 		ctx.let("Logger", LoggerObject)
 		ctx.let("Source", CommandSourceObject(src))
 		ctx.let("StringUtils", StringUtilsObjectHolder.`object`)
 		ctx.let("Objects", ObjectsObjectHolder.`object`)
+
 		ctx.let("println", PESLBuiltins.PRINTLN)
 		ctx.let("validateArgs", FunctionObject.of(false) {
 			PESLEvalException.validArgumentListLength(it, 2)
 			PESLEvalException.validArgumentListLength(it[0].asArray().values, it[1].asNumber().value.toInt())
 			UndefinedObject.INSTANCE
+		})
+		ctx.let("textOf", FunctionObject.of(false) {
+			PESLEvalException.validArgumentListLength(it, 1)
+			TextObject(it[0].castToString())
 		})
 		ctx.let("args", ArrayObject(remaining.stream().map {
 			StringObject(it) as PESLObject

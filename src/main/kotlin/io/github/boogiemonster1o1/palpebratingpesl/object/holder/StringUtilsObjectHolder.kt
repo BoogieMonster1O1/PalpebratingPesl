@@ -1,5 +1,6 @@
 package io.github.boogiemonster1o1.palpebratingpesl.`object`.holder
 
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.StringBuilderObject
 import p0nki.pesl.api.PESLEvalException
 import p0nki.pesl.api.`object`.*
 import java.lang.RuntimeException
@@ -116,6 +117,9 @@ object StringUtilsObjectHolder {
 		.put("format", FunctionObject.of(false) {
 			PESLEvalException.validArgumentListLength(it, 1, 2)
 			StringObject(java.lang.String.format(it[0].castToString(), it[1].asArray().values.stream().map {obj -> obj.castToString()}.toArray()))
+		})
+		.put("newStringBuilder", FunctionObject.of(false) {
+			StringBuilderObject()
 		})
 
 	@Throws(PESLEvalException::class)
