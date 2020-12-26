@@ -1,8 +1,12 @@
 package io.github.boogiemonster1o1.palpebratingpesl
 
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import io.github.boogiemonster1o1.palpebratingpesl.objects.CommandSourceObject
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject
+import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.ServerObject
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields
 import org.spongepowered.api.Sponge
@@ -16,16 +20,14 @@ import org.spongepowered.api.event.game.state.*
 import org.spongepowered.api.text.Text
 import p0nki.pesl.api.PESLContext
 import p0nki.pesl.api.PESLEvalException
-import p0nki.pesl.api.`object`.ArrayObject
-import p0nki.pesl.api.`object`.FunctionObject
-import p0nki.pesl.api.`object`.PESLObject
-import p0nki.pesl.api.`object`.StringObject
+import p0nki.pesl.api.`object`.*
 import p0nki.pesl.api.builtins.PESLBuiltins
 import p0nki.pesl.api.parse.PESLParseException
 import p0nki.pesl.api.parse.PESLParser
 import p0nki.pesl.api.parse.PESLValidateException
 import p0nki.pesl.api.token.PESLTokenList
 import p0nki.pesl.api.token.PESLTokenizeException
+import p0nki.pesl.api.token.PESLTokenizer
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.file.Files
@@ -34,12 +36,20 @@ import java.util.*
 import java.util.stream.Collectors
 
 object Handler {
+	private val peslTokenizer = PESLTokenizer()
+	private val gson = GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().setLenient().create()
+	private val spongeObject: PESLObject = BuiltinMapLikeObject.builtinBuilder()
+		.put("getGame", FunctionObject.of(false) { GameObject })
+		.put("getServer", FunctionObject.of(false) { ServerObject })
+		.put("getPluginManager", FunctionObject.of(false) { PluginManagerObject })
+		.put("getPlatform", FunctionObject.of(false) { PlatformObject })
+	
 	@Listener
 	fun onPreInitialization(event: GamePreInitializationEvent?) {
-		val logger = PalpebratingPesl.getInstance().logger
-		val configPath: Path = PalpebratingPesl.getInstance().configDir.resolve("scripts.json")
+		val logger = PalpebratingPesl.logger
+		val configPath: Path = PalpebratingPesl.configDir.resolve("scripts.json")
 		try {
-			PalpebratingPesl.getInstance().examplePeslAsset.copyToDirectory(PalpebratingPesl.getInstance().configDir.resolve("scripts"), true)
+			PalpebratingPesl.examplePeslAsset.copyToDirectory(PalpebratingPesl.configDir.resolve("scripts"), true)
 		} catch (e: IOException) {
 			logger.error("Error copying example script", e)
 		}
@@ -47,7 +57,7 @@ object Handler {
 			if (!Files.exists(configPath)) {
 				Files.createFile(configPath)
 			}
-			PalpebratingPesl.getInstance().config = PalpebratingPesl.GSON.fromJson(
+			PalpebratingPesl.config = gson.fromJson(
 				Files.newBufferedReader(configPath),
 				Config::class.java
 			)
@@ -66,28 +76,28 @@ object Handler {
 
 	@Listener
 	fun onStartingServer(event: GameStartingServerEvent?) {
-		for (name in PalpebratingPesl.getInstance().config.initScripts) {
-			execute(PalpebratingPesl.getInstance().server.console, name, Collections.emptyList())
+		for (name in PalpebratingPesl.config.initScripts) {
+			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
 		}
 	}
 
 	@Listener
 	fun onStartedServer(event: GameStartedServerEvent?) {
-		for (name in PalpebratingPesl.getInstance().config.serverStartedScripts) {
-			execute(PalpebratingPesl.getInstance().game.server.console, name, Collections.emptyList())
+		for (name in PalpebratingPesl.config.serverStartedScripts) {
+			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
 		}
 	}
 
 	@Listener
 	fun onReload(event: GameReloadEvent?) {
-		for (name in PalpebratingPesl.getInstance().config.reloadScripts) {
-			execute(PalpebratingPesl.getInstance().game.server.console, name, Collections.emptyList())
+		for (name in PalpebratingPesl.config.reloadScripts) {
+			execute(PalpebratingPesl.game.server.console, name, Collections.emptyList())
 		}
 	}
 
 	@Listener
 	fun onInitialization(event: GameInitializationEvent) {
-		Sponge.getCommandManager().register(PalpebratingPesl.getInstance().pluginContainer,
+		Sponge.getCommandManager().register(PalpebratingPesl.pluginContainer,
 			CommandSpec.builder()
 				.permission("palpebratingpesl.evalpesl")
 				.arguments(GenericArguments.string(Text.of("name")), GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("remaining"))))
@@ -103,10 +113,10 @@ object Handler {
 	}
 
 	private fun execute(src: CommandSource?, name: String, remaining: List<String>) {
-		val logger = PalpebratingPesl.getInstance().logger
-		val filePath: Path = PalpebratingPesl.getInstance().configDir.resolve("scripts").resolve("$name.pesl")
+		val logger = PalpebratingPesl.logger
+		val filePath: Path = PalpebratingPesl.configDir.resolve("scripts").resolve("$name.pesl")
 		val tokens: PESLTokenList = try {
-			PalpebratingPesl.TOKENIZER.tokenize(String(Files.readAllBytes(filePath)))
+			peslTokenizer.tokenize(String(Files.readAllBytes(filePath)))
 		} catch (e: PESLTokenizeException) {
 			val index = e.index
 			val builder = StringBuilder()
@@ -131,7 +141,7 @@ object Handler {
 			throw UncheckedIOException(e)
 		}
 		val ctx = PESLContext()
-		ctx.let("Sponge", PalpebratingPesl.SPONGE_OBJECT)
+		ctx.let("Sponge", spongeObject)
 		ctx.let("textOf", FunctionObject.of(false) {
 			PESLEvalException.validArgumentListLength(it, 1)
 			TextObject(it[0].castToString())

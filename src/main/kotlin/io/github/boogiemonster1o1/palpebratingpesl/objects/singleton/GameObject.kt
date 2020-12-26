@@ -8,7 +8,7 @@ import p0nki.pesl.api.`object`.FunctionObject
 import p0nki.pesl.api.`object`.StringObject
 
 object GameObject : BuiltinMapLikeObject("game") {
-	private val game : Game = PalpebratingPesl.getInstance().game
+	private val game : Game = PalpebratingPesl.game
 
 	init {
 		this.put("getServer", FunctionObject.of(false) {

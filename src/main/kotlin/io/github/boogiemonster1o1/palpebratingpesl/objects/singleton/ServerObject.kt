@@ -9,7 +9,7 @@ import p0nki.pesl.api.PESLEvalException
 import p0nki.pesl.api.`object`.*
 
 object ServerObject : BuiltinMapLikeObject("server") {
-	private val server : Server = PalpebratingPesl.getInstance().server
+	private val server : Server = PalpebratingPesl.game.server
 	private val broadcastChannel : MessageChannelObject = MessageChannelObject { server.broadcastChannel }
 
 	init {

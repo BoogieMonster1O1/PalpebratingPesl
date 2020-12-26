@@ -8,7 +8,7 @@ import p0nki.pesl.api.`object`.*
 import java.util.stream.Collectors
 
 object PluginManagerObject : BuiltinMapLikeObject("plugin_manager") {
-	private val pluginManager: PluginManager = PalpebratingPesl.getInstance().pluginManager
+	private val pluginManager: PluginManager = PalpebratingPesl.pluginManager
 
 	init {
 		this.put("getPlugin", FunctionObject.of(false) {

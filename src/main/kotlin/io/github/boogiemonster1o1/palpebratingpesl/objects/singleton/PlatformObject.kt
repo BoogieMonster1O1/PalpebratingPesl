@@ -8,7 +8,7 @@ import p0nki.pesl.api.`object`.FunctionObject
 import p0nki.pesl.api.`object`.StringObject
 
 object PlatformObject : BuiltinMapLikeObject("platform") {
-	private val platform : Platform = PalpebratingPesl.getInstance().game.platform
+	private val platform : Platform = PalpebratingPesl.game.platform
 
 	init {
 		this.put("getApi", FunctionObject.of(false) {

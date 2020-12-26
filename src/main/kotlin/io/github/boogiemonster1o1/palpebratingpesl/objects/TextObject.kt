@@ -1,6 +1,5 @@
 package io.github.boogiemonster1o1.palpebratingpesl.objects
 
-import io.github.boogiemonster1o1.palpebratingpesl.util.Fields
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.TextRepresentable
 import org.spongepowered.api.text.format.TextColor
@@ -9,7 +8,6 @@ import p0nki.pesl.api.`object`.BuiltinMapLikeObject
 import p0nki.pesl.api.`object`.FunctionObject
 import p0nki.pesl.api.`object`.PESLObject
 import java.util.*
-import kotlin.jvm.Throws
 
 class TextObject : BuiltinMapLikeObject, TextRepresentable {
 	private val text : Text.Builder
