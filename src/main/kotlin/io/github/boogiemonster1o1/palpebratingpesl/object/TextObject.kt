@@ -1,4 +1,4 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects
+package io.github.boogiemonster1o1.palpebratingpesl.`object`
 
 import org.spongepowered.api.text.Text
 import org.spongepowered.api.text.TextRepresentable
@@ -45,6 +45,7 @@ class TextObject : BuiltinMapLikeObject, TextRepresentable {
 
 	private fun append(append: TextRepresentable) {
 		text.append(append.toText())
+		text.format
 	}
 
 	override fun toText(): Text = text.toText()

@@ -1,9 +1,9 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects.singleton
+package io.github.boogiemonster1o1.palpebratingpesl.`object`.singleton
 
 import io.github.boogiemonster1o1.palpebratingpesl.PalpebratingPesl
-import io.github.boogiemonster1o1.palpebratingpesl.objects.MessageChannelObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.asText
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.MessageChannelObject
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.TextObject
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.asText
 import org.spongepowered.api.Server
 import p0nki.pesl.api.PESLEvalException
 import p0nki.pesl.api.`object`.*

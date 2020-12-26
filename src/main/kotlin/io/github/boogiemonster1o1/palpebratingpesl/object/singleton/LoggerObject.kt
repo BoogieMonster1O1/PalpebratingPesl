@@ -1,4 +1,4 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects.singleton
+package io.github.boogiemonster1o1.palpebratingpesl.`object`.singleton
 
 import io.github.boogiemonster1o1.palpebratingpesl.PalpebratingPesl
 import p0nki.pesl.api.PESLEvalException

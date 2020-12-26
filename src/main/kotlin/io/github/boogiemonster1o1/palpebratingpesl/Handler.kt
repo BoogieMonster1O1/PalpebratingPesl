@@ -2,9 +2,9 @@ package io.github.boogiemonster1o1.palpebratingpesl
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
-import io.github.boogiemonster1o1.palpebratingpesl.objects.CommandSourceObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject
-import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.*
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.CommandSourceObject
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.TextObject
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.singleton.*
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields
 import org.spongepowered.api.Sponge
 import org.spongepowered.api.command.CommandResult

@@ -1,4 +1,4 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects
+package io.github.boogiemonster1o1.palpebratingpesl.`object`
 
 import org.spongepowered.api.command.CommandSource
 import p0nki.pesl.api.`object`.FunctionObject

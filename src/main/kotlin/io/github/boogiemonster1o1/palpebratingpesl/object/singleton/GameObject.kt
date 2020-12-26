@@ -1,7 +1,6 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects.singleton
+package io.github.boogiemonster1o1.palpebratingpesl.`object`.singleton
 
 import io.github.boogiemonster1o1.palpebratingpesl.PalpebratingPesl
-import io.github.boogiemonster1o1.palpebratingpesl.objects.MessageChannelObject
 import org.spongepowered.api.Game
 import p0nki.pesl.api.`object`.BuiltinMapLikeObject
 import p0nki.pesl.api.`object`.FunctionObject

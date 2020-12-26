@@ -1,4 +1,4 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects
+package io.github.boogiemonster1o1.palpebratingpesl.`object`
 
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields
 import org.spongepowered.api.text.chat.ChatType

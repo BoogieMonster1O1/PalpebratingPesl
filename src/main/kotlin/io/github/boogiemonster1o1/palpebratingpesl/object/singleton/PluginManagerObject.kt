@@ -1,7 +1,7 @@
-package io.github.boogiemonster1o1.palpebratingpesl.objects.singleton
+package io.github.boogiemonster1o1.palpebratingpesl.`object`.singleton
 
 import io.github.boogiemonster1o1.palpebratingpesl.PalpebratingPesl
-import io.github.boogiemonster1o1.palpebratingpesl.objects.PluginContainerObject
+import io.github.boogiemonster1o1.palpebratingpesl.`object`.PluginContainerObject
 import org.spongepowered.api.plugin.PluginManager
 import p0nki.pesl.api.PESLEvalException
 import p0nki.pesl.api.`object`.*
