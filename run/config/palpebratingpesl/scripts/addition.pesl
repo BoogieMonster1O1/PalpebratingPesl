@@ -1,0 +1,5 @@
+x = parseNumber(args[0])
+y = parseNumber(args[1])
+z = x + y
+
+Source.sendMessage(textOf(z).color("RED"))

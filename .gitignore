@@ -1,6 +1,9 @@
 .gradle
 build
 .idea
-run/*
-!run/config/palpebratingpesl/*
+**/run/*
+!run/config/
+!run/config/*
+!run/config/**/*
+run/config/sponge
 .DS_Store

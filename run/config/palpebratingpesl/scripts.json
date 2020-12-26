@@ -1,0 +1,12 @@
+{
+  "initScripts" : [
+    "example"
+  ],
+  "serverStartedScripts": [
+    "example"
+  ],
+  "reloadScripts": [
+    "dump",
+    "example"
+  ]
+}

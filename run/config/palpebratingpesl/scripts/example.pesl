@@ -1,0 +1,1 @@
+Sponge.getServer().getBroadcastChannel().send(textOf("This is an example PESL script!").color("BLUE"))

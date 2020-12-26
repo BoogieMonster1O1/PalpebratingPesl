@@ -1,0 +1,5 @@
+let server = Sponge.getServer()
+let broadcastChannel = server.getBroadcastChannel()
+
+broadcastChannel.send(textOf("TPS: ").color("BLUE").append(textOf(server.getTicksPerSecond()).color("NONE")))
+broadcastChannel.send(textOf("Max Players: ").color("BLUE").append(textOf(server.getMaxPlayers()).color("NONE")))
