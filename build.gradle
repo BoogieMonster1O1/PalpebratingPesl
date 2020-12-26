@@ -3,7 +3,6 @@ plugins {
 	id 'org.spongepowered.plugin' version '0.9.0'
 	id 'com.github.johnrengelman.shadow' version '6.1.0'
 	id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-	id 'org.jetbrains.kotlin.kapt' version '1.4.21'
 }
 
 group = 'io.github.boogiemonster1o1'
@@ -36,6 +35,7 @@ repositories {
 }
 
 dependencies {
+	compileOnly 'com.google.code.gson:gson:2.8.0'
 	compile 'com.github.jearmstrong21:PESL:36498a1'
 	compile 'org.spongepowered:spongeapi:7.3.0'
 	annotationProcessor 'org.spongepowered:spongeapi:7.3.0'
@@ -52,6 +52,7 @@ shadowJar {
 	dependencies {
 		include(dependency('com.github.jearmstrong21:PESL:36498a1'))
 		include(dependency('org.jetbrains.kotlin:kotlin-stdlib-jdk8'))
+		exclude(dependency('org.spongepowered:spongeapi:.*'))
 	}
 	relocate 'p0nki.pesl', 'io.github.boogiemonster1o1.palpebratingpesl.shaded.p0nki.pesl'
 	relocate 'kotlin', 'io.github.boogiemonster1o1.palpebratingpesl.shaded.kotlin'

@@ -13,10 +13,10 @@ class Vector3dObject(private val vector3d: Vector3d) : BuiltinMapLikeObject("vec
 		return vector3d.toString()
 	}
 
-	override fun equals(o: Any?): Boolean {
-		if (this === o) return true
-		if (o !is Vector3dObject) return false
-		return vector3d == o.vector3d
+	override fun equals(other: Any?): Boolean {
+		if (this === other) return true
+		if (other !is Vector3dObject) return false
+		return vector3d == other.vector3d
 	}
 
 	override fun compareEquals(@Nonnull o: PESLObject): Boolean {

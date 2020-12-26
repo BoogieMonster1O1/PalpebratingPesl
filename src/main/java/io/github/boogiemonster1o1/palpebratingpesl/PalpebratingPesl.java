@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
-import io.github.boogiemonster1o1.palpebratingpesl.objects.GetUtilsKt;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject;
@@ -27,14 +26,16 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.api.plugin.PluginManager;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import p0nki.pesl.api.PESLContext;
@@ -56,9 +57,11 @@ public class PalpebratingPesl {
 			.put("getServer", FunctionObject.of(false, args -> ServerObject.INSTANCE))
 			.put("getPluginManager", FunctionObject.of(false, args -> PluginManagerObject.INSTANCE))
 			.put("getPlatform", FunctionObject.of(false, args -> PlatformObject.INSTANCE));
+	public static final Gson GSON = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().setLenient().create();
 	public static final PESLTokenizer TOKENIZER = new PESLTokenizer();
 	public static final PESLParser PARSER = new PESLParser();
 	public static final PESLContext CONTEXT;
+	private Config config = null;
 
 	static {
 		PESLContext e = new PESLContext();
@@ -73,6 +76,8 @@ public class PalpebratingPesl {
 	@Inject private Game game;
 	@Inject private PluginContainer pluginContainer;
 	@Inject @AssetId("scripts/example.pesl") private Asset examplePeslAsset;
+	@Inject private PluginManager pluginManager;
+	@Inject @DefaultConfig(sharedRoot = false) private Path configPath;
 
 	@Listener
 	public void onConstruction(GameConstructionEvent event) {
@@ -86,6 +91,18 @@ public class PalpebratingPesl {
 		} catch (IOException e) {
 			this.logger.error("Error copying example script", e);
 		}
+
+		try {
+			if (!Files.exists(this.configPath)) {
+				Files.createFile(this.configPath);
+			}
+
+			this.config = GSON.fromJson(Files.newBufferedReader(this.configPath), Config.class);
+		} catch (IOException e) {
+			this.logger.error("Error reading file", e);
+		} catch (JsonSyntaxException e) {
+			this.logger.error(e.getMessage(), e);
+		}
 	}
 
 	@Listener
@@ -95,41 +112,46 @@ public class PalpebratingPesl {
 	}
 
 	@Listener
+	public void onStartingServer(GameStartingServerEvent event) {
+		for (String name : this.config.getInitScripts()) {
+			Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
+		}
+	}
+
+	@Listener
 	public void onInitialization(GameInitializationEvent event) {
 		Sponge.getCommandManager().register(this.pluginContainer,
 				CommandSpec.builder()
 						.permission("palpebratingpesl.evalpesl")
 						.arguments(GenericArguments.string(Text.of("name")), GenericArguments.remainingJoinedStrings(Text.of("remaining")))
 						.executor((src, args) -> {
-							String name = args.<String>getOne("name").orElseThrow(AssertionError::new);
 							long start = System.nanoTime();
-							Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
-
-							try {
-								PESLContext argContext = CONTEXT.push();
-								argContext.let("Args", new ArrayObject(Arrays.stream(args.<String>getOne("remaining").orElse("").split(" ")).map(StringObject::new).collect(Collectors.toList())));
-								PARSER.parseExpression(TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)))).evaluate(CONTEXT);
-							} catch (PESLParseException e) {
-								throw new RuntimeException(e.getMessage(), e);
-							} catch (PESLEvalException e) {
-								throw new RuntimeException("Encountered an unknown exception: " + e.getMessage(), e);
-							} catch (PESLTokenizeException e) {
-								throw new RuntimeException("Invalid PESL code at index " + e.getIndex(), e);
-							} catch (IOException e) {
-								throw new UncheckedIOException(e);
-							}
-
+							this.execute(args.<String>getOne("name").orElseThrow(AssertionError::new), args.<String>getOne("remaining").orElse("").split(" "));
 							long end = System.nanoTime() - start;
-							src.sendMessage(Text.builder("Finished executing script " + name + " in " + (end / 1_000_000D) + " ms").onHover(TextActions.showText(Text.of(filePath.toAbsolutePath().toString()))).toText());
+							src.sendMessage(Text.builder("Finished executing script " + args.<String>getOne("name").orElseThrow(AssertionError::new) + " in " + (end / 1_000_000D) + " ms").toText());
 							return CommandResult.success();
 						})
 						.build(),
 				"evalpesl");
 	}
 
-//	@Listener
-//	public void onReload(GameReloadEvent event) {
-//	}
+	private void execute(String name, String... args) throws RuntimeException {
+		Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
+
+		try {
+			PESLContext argContext = CONTEXT.push();
+			argContext.let("args", new ArrayObject(Arrays.stream(args).map(StringObject::new).collect(Collectors.toList())));
+			PARSER.parseExpression(TOKENIZER.tokenize(new String(Files.readAllBytes(filePath)))).evaluate(CONTEXT);
+		} catch (PESLParseException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		} catch (PESLEvalException e) {
+			throw new RuntimeException("Encountered an unknown exception: " + e.getMessage(), e);
+		} catch (PESLTokenizeException e) {
+			throw new RuntimeException("Invalid PESL code at index " + e.getIndex(), e);
+		} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
+	}
 
 	public Path getConfigDir() {
 		return this.configDir;
@@ -149,6 +171,10 @@ public class PalpebratingPesl {
 
 	public Server getServer() {
 		return this.getGame().getServer();
+	}
+
+	public PluginManager getPluginManager() {
+		return this.pluginManager;
 	}
 
 	public static PalpebratingPesl getInstance() {

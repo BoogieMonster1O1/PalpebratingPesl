@@ -59,6 +59,9 @@ object ServerObject : BuiltinMapLikeObject("server") {
 		this.put("getBroadcastChannel", FunctionObject.of(false) {
 			broadcastChannel
 		})
+		this.put("getBoundAddress", FunctionObject.of(false) {
+			StringObject(server.boundAddress.map { it.address.toString() }.orElse(""))
+		})
 	}
 
 	@JvmStatic
