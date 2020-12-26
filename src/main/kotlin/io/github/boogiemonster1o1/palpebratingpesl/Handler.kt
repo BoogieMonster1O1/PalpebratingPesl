@@ -145,6 +145,11 @@ object Handler {
 		})
 		ctx.let("Source", CommandSourceObject(src))
 		ctx.let("println", PESLBuiltins.PRINTLN)
+		ctx.let("validateArgs", FunctionObject.of(false) {
+			PESLEvalException.validArgumentListLength(it, 2)
+			PESLEvalException.validArgumentListLength(it[0].asArray().values, it[1].asNumber().value.toInt())
+			UndefinedObject.INSTANCE
+		})
 		ctx.let("args", ArrayObject(remaining.stream().map {
 			StringObject(it) as PESLObject
 		}.collect(Collectors.toList())))
