@@ -11,12 +11,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
+import io.github.boogiemonster1o1.palpebratingpesl.objects.CommandSourceObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.TextObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.GameObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PlatformObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.PluginManagerObject;
 import io.github.boogiemonster1o1.palpebratingpesl.objects.singleton.ServerObject;
 import io.github.boogiemonster1o1.palpebratingpesl.util.Fields;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.Server;
@@ -24,6 +26,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.asset.AssetId;
 import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
@@ -63,7 +66,6 @@ public class PalpebratingPesl {
 			.put("getPlatform", FunctionObject.of(false, args -> PlatformObject.INSTANCE));
 	public static final Gson GSON = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().setLenient().create();
 	public static final PESLTokenizer TOKENIZER = new PESLTokenizer();
-	public static final PESLParser PARSER = new PESLParser();
 	private Config config = null;
 
 	private static PalpebratingPesl instance;
@@ -74,7 +76,6 @@ public class PalpebratingPesl {
 	@Inject private PluginContainer pluginContainer;
 	@Inject @AssetId("scripts/example.pesl") private Asset examplePeslAsset;
 	@Inject private PluginManager pluginManager;
-	@Inject @DefaultConfig(sharedRoot = false) private Path configPath;
 
 	@Listener
 	public void onConstruction(GameConstructionEvent event) {
@@ -83,6 +84,8 @@ public class PalpebratingPesl {
 
 	@Listener
 	public void onPreInitialization(GamePreInitializationEvent event) {
+		Path configPath = this.configDir.resolve("scripts.json");
+
 		try {
 			this.examplePeslAsset.copyToDirectory(this.configDir.resolve("scripts"), true);
 		} catch (IOException e) {
@@ -90,11 +93,11 @@ public class PalpebratingPesl {
 		}
 
 		try {
-			if (!Files.exists(this.configPath)) {
-				Files.createFile(this.configPath);
+			if (!Files.exists(configPath)) {
+				Files.createFile(configPath);
 			}
 
-			this.config = GSON.fromJson(Files.newBufferedReader(this.configPath), Config.class);
+			this.config = GSON.fromJson(Files.newBufferedReader(configPath), Config.class);
 		} catch (IOException e) {
 			this.logger.error("Error reading file", e);
 		} catch (JsonSyntaxException e) {
@@ -111,7 +114,7 @@ public class PalpebratingPesl {
 	@Listener
 	public void onStartingServer(GameStartingServerEvent event) {
 		for (String name : this.config.getInitScripts()) {
-			this.execute(name);
+			this.execute(null, name);
 		}
 	}
 
@@ -123,7 +126,7 @@ public class PalpebratingPesl {
 						.arguments(GenericArguments.string(Text.of("name")), GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("remaining"))))
 						.executor((src, args) -> {
 							long start = System.nanoTime();
-							this.execute(args.<String>getOne("name").orElseThrow(AssertionError::new), args.<String>getOne("remaining").orElse("").split(" "));
+							this.execute(src, args.<String>getOne("name").orElseThrow(AssertionError::new), args.<String>getOne("remaining").orElse("").split(" "));
 							long end = System.nanoTime() - start;
 							src.sendMessage(Text.builder("Finished executing script " + args.<String>getOne("name").orElseThrow(AssertionError::new) + " in " + (end / 1_000_000D) + " ms").toText());
 							return CommandResult.success();
@@ -132,7 +135,7 @@ public class PalpebratingPesl {
 				"evalpesl");
 	}
 
-	private void execute(String name, String... remaining) throws RuntimeException {
+	private void execute(@Nullable CommandSource src, String name, String... remaining) throws RuntimeException {
 		Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
 		PESLTokenList tokens;
 		try {
@@ -158,6 +161,9 @@ public class PalpebratingPesl {
 			PESLEvalException.validArgumentListLength(args, 1);
 			return new TextObject(args.get(0).castToString());
 		}));
+		if (src != null) {
+			ctx.let("Source", new CommandSourceObject(src));
+		}
 		ctx.let("println", PESLBuiltins.PRINTLN);
 		ctx.let("args", new ArrayObject(Arrays.stream(remaining).map(StringObject::new).collect(Collectors.toList())));
 
