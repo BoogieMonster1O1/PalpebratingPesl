@@ -32,10 +32,12 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
@@ -114,7 +116,21 @@ public class PalpebratingPesl {
 	@Listener
 	public void onStartingServer(GameStartingServerEvent event) {
 		for (String name : this.config.getInitScripts()) {
-			this.execute(null, name);
+			this.execute(this.game.getServer().getConsole(), name);
+		}
+	}
+
+	@Listener
+	public void onStartedServer(GameStartedServerEvent event) {
+		for (String name : this.config.getServerStartedScripts()) {
+			this.execute(this.game.getServer().getConsole(), name);
+		}
+	}
+
+	@Listener
+	public void onReload(GameReloadEvent event) {
+		for (String name : this.config.getReloadScripts()) {
+			this.execute(this.game.getServer().getConsole(), name);
 		}
 	}
 
@@ -135,7 +151,7 @@ public class PalpebratingPesl {
 				"evalpesl");
 	}
 
-	private void execute(@Nullable CommandSource src, String name, String... remaining) throws RuntimeException {
+	private void execute(CommandSource src, String name, String... remaining) throws RuntimeException {
 		Path filePath = this.configDir.resolve("scripts").resolve(name + ".pesl");
 		PESLTokenList tokens;
 		try {
